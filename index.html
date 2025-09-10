@@ -43,6 +43,29 @@
       pointer-events:auto; cursor:pointer; user-select:none; -webkit-tap-highlight-color: transparent;
       background: rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2); border-radius: 10px; padding: 6px 10px;
     }
+    #info-panel {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    max-width: 80%;
+    font-family: sans-serif;
+    text-align: center;
+  }
+
+  #toggle-btn {
+    background: #ffcc00;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
   </style>
 </head>
 <body>
@@ -189,5 +212,27 @@
       }
     });
   </script>
+  <script>
+  const toggleBtn = document.getElementById("toggle-btn");
+  const infoContent = document.getElementById("info-content");
+
+  toggleBtn.addEventListener("click", () => {
+    if (infoContent.style.display === "none") {
+      infoContent.style.display = "block";
+      toggleBtn.textContent = "Hide Info";
+    } else {
+      infoContent.style.display = "none";
+      toggleBtn.textContent = "Show Info";
+    }
+  });
+</script>
 </body>
+<!-- Info Panel -->
+<div id="info-panel">
+  <button id="toggle-btn">Hide Info</button>
+  <div id="info-content">
+    <h2>Norlin Library</h2>
+    <p>This is CU’s main library. In AR, you’ll see a floating book to symbolize it.</p>
+  </div>
+</div>
 </html>
