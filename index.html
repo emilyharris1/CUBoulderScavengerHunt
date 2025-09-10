@@ -82,19 +82,24 @@
     <a-camera gps-new-camera="gpsMinDistance: 5;"></a-camera>
 
     <!-- POI: Norlin Library (main entrance area) -->
-    <a-entity id="poi-norlin" gps-new-entity-place="latitude: 40.008351; longitude: -105.269859">
+    <a-entity id="poi-norlin" gps-new-entity-place="latitude: 40.0085; longitude: -105.27016">
       <a-entity gps-entity-place="latitude: 40.0085; longitude: -105.27016" 
           gltf-model="assets/Bookstack.glb" 
           scale="7 7 7" 
           rotation="0 180 0">
       </a-entity>
       <a-text id="label-norlin" value="Norlin Library" look-at="[gps-new-camera]" position="0 12 0" align="center" scale="10 10 10"></a-text>
-    </a-entity>
+    </a-entity> 
 
     <!-- POI: ATLAS (placed near the Visual Arts Complex / CU Art Museum) -->
     <a-entity id="poi-atlas" gps-new-entity-place="latitude: 40.00779; longitude: -105.26967">
-      <a-box position="0 5 0" depth="4" height="10" width="4" material="opacity:0.9; side: double"></a-box>
-      <a-text id="label-atlas" value="ATLAS / VAC" look-at="[gps-new-camera]" position="0 12 0" align="center" scale="24 24 24"></a-text>
+      <a-entity gps-entity-place="latitude: 40.00779; longitude: -105.26967" 
+          gltf-model="assets/VideogameController.glb" 
+          scale="7 7 7" 
+          material="opacity:0.9
+          rotation="0 180 0">
+      </a-entity>
+      <a-text id="label-atlas" value="ATLAS / VAC" look-at="[gps-new-camera]" position="0 12 0" align="center" scale="10 10 10"></a-text>
     </a-entity>
   </a-scene>
 
