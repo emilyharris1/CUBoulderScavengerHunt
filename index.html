@@ -83,7 +83,11 @@
 
     <!-- POI: Norlin Library (main entrance area) -->
     <a-entity id="poi-norlin" gps-new-entity-place="latitude: 40.008351; longitude: -105.269859">
-      <a-cone position="0 5 0" height="10" radius-bottom="2" radius-top="0.1" material="opacity:0.9; side: double"></a-cone>
+      <a-entity gps-entity-place="latitude: 40.0076; longitude: -105.2659" 
+          gltf-model="assets/Bookstack.glb" 
+          scale="5 5 5" 
+          rotation="0 180 0">
+      </a-entity>
       <a-text id="label-norlin" value="Norlin Library" look-at="[gps-new-camera]" position="0 12 0" align="center" scale="24 24 24"></a-text>
     </a-entity>
 
