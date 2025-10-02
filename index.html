@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>CU Boulder AR Scavenger Hunt (Norlin + ATLAS + Varsity + Museum)</title>
+  <title>CU Boulder AR Scavenger Hunt (Norlin + ATLAS)</title>
 
-  <!-- A-Frame and AR.js -->
+  <!-- A-Frame and AR.js (Location-based) -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/three.js/build/ar-threex-location-only.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
+  <!-- Make in-world labels face the camera -->
   <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-
   <script>
     AFRAME.registerComponent('spin-y', {
-      schema: {speed: {type: 'number', default: 30}},
+      schema: {speed: {type: 'number', default: 30}}, // degrees per second
       tick: function (time, deltaTime) {
         this.el.object3D.rotation.y += (this.data.speed * deltaTime) / 1000;
       }
@@ -23,133 +23,301 @@
   <style>
     :root { --bg: rgba(0,0,0,.55); --fg: #fff; --accent: #ffd166; --muted:#d9d9d9; }
     html, body { margin:0; padding:0; height:100%; background:#000; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    #hud { position: fixed; inset: 0 0 auto 0; padding: 10px 12px; display:flex; gap:8px;
-      align-items: flex-start; color: var(--fg); z-index: 9999; pointer-events: none; }
-    #hud .card { pointer-events: auto; background: var(--bg); backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,.15); border-radius: 12px; padding: 10px 12px;
-      line-height: 1.25; box-shadow: 0 6px 20px rgba(0,0,0,.25); margin-top: 30px; }
-    #hud .title { font-weight: 700; }
+    #hud {
+      position: fixed; inset: 0 0 auto 0; padding: 10px 12px; display:flex; gap:8px;
+      align-items: flex-start; color: var(--fg); z-index: 9999; pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    #hud.minimized {
+      transform: translateY(-50px);
+    }
+    #hud .card {
+      pointer-events: auto;
+      background: var(--bg); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 12px; padding: 10px 12px; line-height: 1.25; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      margin-top: 30px;
+    }
+    #hud .title { font-weight: 700; letter-spacing: .2px; }
+    #hud small { color: var(--muted); }
     .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
-    .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
-      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); }
+    label.chk { display:flex; align-items:center; gap:6px; }
+    .pill {
+      display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
+    }
     .pill b { color: var(--accent); }
+    kbd { padding:2px 6px; border-radius:6px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); }
     #toast { position: fixed; inset: auto 0 20px 0; display:flex; justify-content:center; z-index:9999; }
     #toast .msg { background: var(--bg); color:var(--fg); border:1px solid rgba(255,255,255,.15); padding:10px 14px; border-radius: 12px; }
-    .btn { pointer-events:auto; cursor:pointer; background: rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2); border-radius: 10px; padding: 6px 10px; }
+    .note { font-size: 12px; opacity: .9; }
+    .btn {
+      pointer-events:auto; cursor:pointer; user-select:none; -webkit-tap-highlight-color: transparent;
+      background: rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2); border-radius: 10px; padding: 6px 10px;
+      transition: background-color 0.2s ease;
+    }
+    .btn:hover {
+      background: rgba(255,255,255,.15);
+    }
+    .btn:active {
+      background: rgba(255,255,255,.2);
+    }
+    
+    /* Minimizable content */
+    .minimizable {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-origin: top;
+      opacity: 1;
+      max-height: 500px;
+      overflow: hidden;
+    }
+    .minimized .minimizable {
+      opacity: 0;
+      max-height: 0;
+      margin-top: 0 !important;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    
+    /* Toggle button styling */
+    #toggleHudBtn {
+      background: rgba(255, 209, 102, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(255, 209, 102, 0.3);
+      font-weight: 600;
+      font-size: 14px;
+      min-width: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #toggleHudBtn:hover {
+      background: rgba(255, 209, 102, 0.25);
+    }
+    
+    /* Compact header when minimized */
+    .header-compact {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* Smooth transitions for all interactive elements */
+    * {
+      transition: transform 0.1s ease;
+    }
   </style>
 </head>
 <body>
-  <!-- HUD -->
+<!-- Heads-up UI -->
   <div id="hud">
     <div class="card">
       <div class="row header-compact">
         <div class="title">CU Boulder AR Hunt</div>
-        <button id="toggleHudBtn" class="btn">−</button>
+        <button id="toggleHudBtn" class="btn" title="Minimize/Maximize HUD">−</button>
       </div>
+      
       <div class="minimizable">
         <div class="row" style="margin-top:6px">
-          <div class="pill"><b>Steps:</b> Enable <b>Location</b> + <b>Camera</b></div>
-          <button id="recenterBtn" class="btn">Re-center</button>
+          <div class="pill"><b>Steps:</b> Enable <b>Location</b> + <b>Camera</b> → Look Around</div>
+          <button id="recenterBtn" class="btn" title="Re-center labels to face you again">Re-center</button>
         </div>
         <div class="row" style="margin-top:6px">
-          <label><input type="checkbox" id="toggleNorlin" checked />Norlin</label>
+          <label class="chk"><input type="checkbox" id="toggleNorlin" checked />Norlin Library</label>
           <span id="dNorlin" class="pill">-- m</span>
-          <label><input type="checkbox" id="toggleATLAS" checked />ATLAS</label>
+          <label class="chk"><input type="checkbox" id="toggleATLAS" checked />ATLAS / VAC</label>
           <span id="dATLAS" class="pill">-- m</span>
-        </div>
-        <div class="row" style="margin-top:6px">
-          <label><input type="checkbox" id="toggleVarsity" checked />Varsity Lake</label>
-          <span id="dVarsity" class="pill">-- m</span>
-          <label><input type="checkbox" id="toggleMuseum" checked />Museum</label>
-          <span id="dMuseum" class="pill">-- m</span>
         </div>
         <div class="row" style="margin-top:6px">
           <small id="gpsStatus">GPS: looking for signal…</small>
         </div>
         <div class="row" style="margin-top:4px">
-          <small id="closestLocation" class="note">Closest: --</small>
+          <small class="note">Tip: If labels don't face you, tap <kbd>Re-center</kbd>. Try walking a few meters.</small>
         </div>
       </div>
     </div>
   </div>
-  <div id="toast"></div>
+  <div id="toast" aria-live="polite"></div>
 
   <!-- AR Scene -->
   <a-scene
     vr-mode-ui="enabled: false"
+    renderer="antialias: true; alpha: true; colorManagement: true; physicallyCorrectLights: true"
     embedded
-    renderer="antialias: true; alpha: true;"
     arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false"
     style="width:100%; height:100%;"
   >
+    <!-- The AR.js GPS camera -->
     <a-camera gps-new-camera="gpsMinDistance: 5;"></a-camera>
 
-    <!-- Norlin -->
+    <!-- POI: Norlin Library (main entrance area) -->
     <a-entity id="poi-norlin" gps-new-entity-place="latitude: 40.0085; longitude: -105.27016">
-      <a-entity gltf-model="assets/Bookstack.glb" scale="7 7 7" rotation="0 180 0" spin-y="speed:5"></a-entity>
-      <a-text id="label-norlin" value="Norlin Library" look-at="[gps-new-camera]" position="0 12 0" scale="10 10 10"></a-text>
-    </a-entity>
+      <a-entity gps-entity-place="latitude: 40.0085; longitude: -105.27016" 
+          gltf-model="assets/Bookstack.glb" 
+          scale="7 7 7" 
+          rotation="0 180 0"
+          spin-y="speed: 5">
+<!--           animation="property: rotation; from: 0 0 0; to: 0 360 0; loop: true; dur: 8000; easing: linear"> -->
+      </a-entity>
+      <a-text id="label-norlin" value="Norlin Library" look-at="[gps-new-camera]" position="0 12 0" align="center" color="black" scale="10 10 10"></a-text>
+    </a-entity> 
 
-    <!-- ATLAS -->
+    <!-- POI: ATLAS  -->
     <a-entity id="poi-atlas" gps-new-entity-place="latitude: 40.00779; longitude: -105.26967">
-      <a-entity gltf-model="assets/VideogameController.glb" scale="0.5 0.5 0.5" rotation="90 -20 0" spin-y="speed:5"></a-entity>
-      <a-text id="label-atlas" value="ATLAS Building" look-at="[gps-new-camera]" position="0 12 0" scale="10 10 10"></a-text>
-    </a-entity>
-
-    <!-- Varsity Lake -->
-    <a-entity id="poi-varsity" gps-new-entity-place="latitude:40.00966; longitude:-105.27428">
-      <a-entity gltf-model="assets/Lake.glb" scale="5 5 5" rotation="0 0 0" spin-y="speed:5"></a-entity>
-      <a-text id="label-varsity" value="Varsity Lake" look-at="[gps-new-camera]" position="0 12 0" scale="10 10 10"></a-text>
-    </a-entity>
-
-    <!-- Museum -->
-    <a-entity id="poi-museum" gps-new-entity-place="latitude:40.00682; longitude:-105.27277">
-      <a-entity gltf-model="assets/Bone.glb" scale="3 3 3" rotation="0 0 0" spin-y="speed:5"></a-entity>
-      <a-text id="label-museum" value="Natural History Museum" look-at="[gps-new-camera]" position="0 12 0" scale="10 10 10"></a-text>
+      <a-entity gps-entity-place="latitude: 40.00779; longitude: -105.26967" 
+          gltf-model="assets/VideogameController.glb" 
+          scale="0.5 0.5 0.5" 
+          material="opacity:0.9"
+          rotation="90 -20 0"
+          spin-y="speed: 5">
+<!--           animation="property: rotation; from: 90 0 0; to: 90 360 0; loop: true; dur: 6000; easing: linear"> -->
+      </a-entity>
+      <a-text id="label-atlas" value="ATLAS Building" look-at="[gps-new-camera]" position="0 12 0" align="center" color="black" scale="10 10 10"></a-text>
     </a-entity>
   </a-scene>
 
+  <a-entity id="poi-varsity" gps-new-entity-place="latitude:40.00966; longitude:-105.27428">
+      <a-entity gps-entity-place="latitude:40.00966; longitude:-105.27428"
+          gltf-model="assets/Lake.glb"
+          scale="5 5 5"
+          rotation="0 0 0"
+          spin-y="speed:5">
+      </a-entity>
+      <a-text id="label-varsity" value="Varsity Lake" look-at="[gps-new-camera]" position="0 12 0" align="center" color="black" scale="10 10 10"></a-text>
+    </a-entity> 
+
+    <!-- POI: Natural History Museum -->
+    <a-entity id="poi-museum" gps-new-entity-place="latitude:40.00682; longitude:-105.27277">
+      <a-entity gps-entity-place="latitude:40.00682; longitude:-105.27277"
+          gltf-model="assets/Bone.glb"
+          scale="3 3 3"
+          rotation="0 0 0"
+          spin-y="speed:5">
+      </a-entity>
+      <a-text id="label-museum" value="Natural History Museum" look-at="[gps-new-camera]" position="0 12 0" align="center" color="black" scale="10 10 10"></a-text>
+    </a-entity>
+
   <script>
+    // ---- Simple Haversine distance (meters) ----
     function haversineMeters(lat1, lon1, lat2, lon2) {
-      const toRad = d => d * Math.PI / 180, R = 6371000;
-      const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
-      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
-      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+      const toRad = d => d * Math.PI / 180;
+      const R = 6371000; // meters
+      const dLat = toRad(lat2 - lat1);
+      const dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
     }
 
     const targets = {
-      norlin: { name:"Norlin Library", lat:40.008351, lon:-105.269859, el:'#poi-norlin', toggle:'#toggleNorlin', dist:'#dNorlin', label:'#label-norlin' },
-      atlas: { name:"ATLAS / VAC", lat:40.0071202988, lon:-105.2697575751, el:'#poi-atlas', toggle:'#toggleATLAS', dist:'#dATLAS', label:'#label-atlas' },
-      varsity: { name:"Varsity Lake", lat:40.00966, lon:-105.27428, el:'#poi-varsity', toggle:'#toggleVarsity', dist:'#dVarsity', label:'#label-varsity' },
-      museum: { name:"Natural History Museum", lat:40.00682, lon:-105.27277, el:'#poi-museum', toggle:'#toggleMuseum', dist:'#dMuseum', label:'#label-museum' },
+      norlin: { name: "Norlin Library", lat: 40.008351, lon: -105.269859, el: null, distance: null, labelEl: null, toggleEl: null, distEl: null },
+      atlas:  { name: "ATLAS / VAC",     lat: 40.0071202988, lon: -105.2697575751, el: null, distance: null, labelEl: null, toggleEl: null, distEl: null },
+      varsity:  { name: "Varsity Lake",     lat: 40.00966, lon: -105.27428, el: null, distance: null, labelEl: null, toggleEl: null, distEl: null },
+      museum:  { name: "Natural History Museum",     lat: 40.00682, lon: -105.27277, el: null, distance: null, labelEl: null, toggleEl: null, distEl: null }
     };
 
-    for (const k in targets) {
-      const t = targets[k];
-      t.el = document.querySelector(t.el);
-      t.toggleEl = document.querySelector(t.toggle);
-      t.distEl = document.querySelector(t.dist);
-      t.labelEl = document.querySelector(t.label);
-      t.toggleEl.addEventListener('change', e => t.el.setAttribute('visible', e.target.checked));
-    }
+    // Bind UI elements
+    targets.norlin.el    = document.querySelector('#poi-norlin');
+    targets.atlas.el     = document.querySelector('#poi-atlas');
+    targets.varsity.el     = document.querySelector('#poi-varsity');
+    targets.museum.el     = document.querySelector('#poi-museum');
+    targets.norlin.labelEl = document.querySelector('#label-norlin');
+    targets.atlas.labelEl  = document.querySelector('#label-atlas');
+    targets.varsity.labelEl  = document.querySelector('#label-varsity');
+    targets.museum.labelEl  = document.querySelector('#label-museum');
+    targets.norlin.toggleEl = document.querySelector('#toggleNorlin');
+    targets.atlas.toggleEl  = document.querySelector('#toggleATLAS');
+    targets.varsity.toggleEl  = document.querySelector('#toggleVarsity');
+    targets.museum.toggleEl  = document.querySelector('#toggleMuseum');
+    targets.norlin.distEl   = document.querySelector('#dNorlin');
+    targets.atlas.distEl    = document.querySelector('#dATLAS');
+    targets.varsity.distEl    = document.querySelector('#dVarsity');
+    targets.museum.distEl    = document.querySelector('#dMuseum');
 
     const gpsStatus = document.querySelector('#gpsStatus');
-    const closestEl = document.querySelector('#closestLocation');
+    const recenterBtn = document.querySelector('#recenterBtn');
+    const toast = document.querySelector('#toast');
+    const hud = document.querySelector('#hud');
+    const toggleHudBtn = document.querySelector('#toggleHudBtn');
 
+    // HUD minimize/maximize functionality
+    let isMinimized = false;
+    toggleHudBtn.addEventListener('click', () => {
+      isMinimized = !isMinimized;
+      hud.classList.toggle('minimized', isMinimized);
+      toggleHudBtn.textContent = isMinimized ? '+' : '−';
+      toggleHudBtn.title = isMinimized ? 'Maximize HUD' : 'Minimize HUD';
+      showToast(isMinimized ? 'HUD minimized - tap + to expand' : 'HUD expanded');
+    });
+
+    // Toggle visibility handlers
+    targets.norlin.toggleEl.addEventListener('change', (e)=>{
+      targets.norlin.el.setAttribute('visible', e.target.checked);
+    });
+    targets.atlas.toggleEl.addEventListener('change', (e)=>{
+      targets.atlas.el.setAttribute('visible', e.target.checked);
+    });
+    targets.varsity.toggleEl.addEventListener('change', (e)=>{
+      targets.varsity.el.setAttribute('visible', e.target.checked);
+    });
+    targets.museum.toggleEl.addEventListener('change', (e)=>{
+      targets.museum.el.setAttribute('visible', e.target.checked);
+    });
+
+    // Recenter: nudge labels to re-compute look-at
+    recenterBtn.addEventListener('click', ()=>{
+      [targets.norlin.labelEl, targets.varsity.labelEl, targets.museum.labelEl, targets.atlas.labelEl].forEach(lbl => {
+        if (!lbl) return;
+        // Tiny jiggle to retrigger look-at
+        const p = lbl.getAttribute('position');
+        lbl.setAttribute('position', {x: p.x, y: p.y + 0.001, z: p.z});
+        setTimeout(()=>lbl.setAttribute('position', p), 0);
+      });
+      showToast("Re-centered labels");
+    });
+
+    function showToast(msg) {
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.textContent = msg;
+      toast.appendChild(div);
+      setTimeout(()=>{
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(6px)';
+        setTimeout(()=>div.remove(), 600);
+      }, 1500);
+    }
+
+    // Update distances when GPS updates
     const gpsCam = document.querySelector('[gps-new-camera]');
-    gpsCam.addEventListener('gps-camera-update-position', e => {
-      const {latitude, longitude, accuracy} = e.detail.position;
+    gpsCam.addEventListener('gps-camera-update-position', (e) => {
+      const { latitude, longitude, accuracy } = e.detail.position;
       gpsStatus.textContent = `GPS: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy||0)} m)`;
 
-      let minDist = Infinity, closestName = "--";
-      for (const k in targets) {
-        const t = targets[k];
-        const d = haversineMeters(latitude, longitude, t.lat, t.lon);
-        t.distEl.textContent = d >= 1000 ? (d/1000).toFixed(2)+" km" : Math.round(d)+" m";
-        if (d < minDist) { minDist = d; closestName = t.name; }
+      for (const key of Object.keys(targets)) {
+        const t = targets[key];
+        t.distance = haversineMeters(latitude, longitude, t.lat, t.lon);
+        if (t.distEl) {
+          const val = t.distance >= 1000 ? (t.distance/1000).toFixed(2) + ' km' : Math.round(t.distance) + ' m';
+          t.distEl.textContent = val;
+        }
       }
-      closestEl.textContent = "Closest: " + closestName;
     });
+
+    // Helpful warnings
+    window.addEventListener('load', () => {
+      if (!('geolocation' in navigator)) {
+        gpsStatus.textContent = "GPS: not available in this browser.";
+      }
+    });
+
+    // Auto-minimize after 10 seconds for first-time users
+    setTimeout(() => {
+      if (!isMinimized) {
+        showToast('Tip: Use the − button to minimize this panel and focus on the AR view');
+      }
+    }, 10000);
   </script>
 </body>
-</html>
