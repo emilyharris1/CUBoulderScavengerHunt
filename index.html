@@ -34,7 +34,7 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     #hud.minimized {
-      transform: translateY(-50px);
+      transform: translateY(calc(-100% - 20px));
     }
     #hud .card {
       pointer-events: auto;
@@ -153,7 +153,6 @@
 
       <div class="minimizable">
         <div class="row" style="margin-top:6px">
-          <div class="pill"><b>Steps:</b> Enable <b>Location</b> + <b>Camera</b> → Look Around</div>
           <button id="recenterBtn" class="btn">Re-center</button>
         </div>
         <div class="row" style="margin-top:6px">
@@ -256,8 +255,8 @@
     }
 
     const targets = {
-      norlin: {lat:40.008351, lon:-105.269859, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library'},
-      atlas:  {lat:40.0071203, lon:-105.2697576, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building'},
+      norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library'},
+      atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building'},
       varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Varsity Lake'},
       englib: {lat:40.00752, lon:-105.26597, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Engineering Library'},
       music:  {lat:40.00623, lon:-105.27038, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Music Library'}
@@ -298,6 +297,25 @@
     let mapExpanded = false;
     let currentLat, currentLon;
     let map, userMarker, targetMarkers = {};
+
+    // Request permissions
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          const {latitude, longitude, accuracy} = pos.coords;
+          gpsStatus.textContent = `GPS: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy || 0)} m)`;
+          currentLat = latitude;
+          currentLon = longitude;
+        },
+        (err) => {
+          gpsStatus.textContent = `GPS Error: ${err.message}`;
+          console.error('Geolocation error:', err);
+        },
+        {enableHighAccuracy: true, timeout: 10000, maximumAge: 5000}
+      );
+    } else {
+      gpsStatus.textContent = 'GPS not available on this device';
+    }
 
     // Initialize map
     map = L.map('map').setView([40.00852, -105.26916], 16);
