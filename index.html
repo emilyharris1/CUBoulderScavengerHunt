@@ -162,14 +162,24 @@ Explore popular study spots around CU Boulder campus using augmented reality. En
 <div class="row" style="margin-top:6px">
 <label class="chk"><input type="checkbox" id="toggleNorlin" checked />Norlin Library</label>
 <span id="dNorlin" class="pill">-- m</span>
+<span id="hNorlin" style="font-size:11px; color:var(--muted);">8am - 12am</span>
+<input type="checkbox" id="foundNorlin" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
 <label class="chk"><input type="checkbox" id="toggleATLAS" checked />ATLAS / VAC</label>
 <span id="dATLAS" class="pill">-- m</span>
+<span id="hATLAS" style="font-size:11px; color:var(--muted);">7am - 11pm</span>
+<input type="checkbox" id="foundATLAS" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
 <label class="chk"><input type="checkbox" id="toggleVarsity" checked />Varsity Lake</label>
 <span id="dVarsity" class="pill">-- m</span>
+<span id="hVarsity" style="font-size:11px; color:var(--muted);">Always open</span>
+<input type="checkbox" id="foundVarsity" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
 <label class="chk"><input type="checkbox" id="toggleEngLib" checked />Engineering Library (Math)</label>
 <span id="dEngLib" class="pill">-- m</span>
+<span id="hEngLib" style="font-size:11px; color:var(--muted);">8am - 10pm</span>
+<input type="checkbox" id="foundEngLib" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
 <label class="chk"><input type="checkbox" id="toggleMusic" checked />Music Library (Imig)</label>
 <span id="dMusic" class="pill">-- m</span>
+<span id="hMusic" style="font-size:11px; color:var(--muted);">9am - 9pm</span>
+<input type="checkbox" id="foundMusic" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
 </div>
 <div class="row" style="margin-top:6px">
 <small id="gpsStatus">GPS: looking for signal…</small>
@@ -259,11 +269,11 @@ return directions[index];
 }
 
 const targets = {
-norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library'},
-atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building'},
-varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Varsity Lake'},
-englib: {lat:40.00752, lon:-105.26597, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Engineering Library'},
-music:  {lat:40.00623, lon:-105.27038, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Music Library'}
+norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library', hours:'8am - 12am', found:false},
+atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building', hours:'7am - 11pm', found:false},
+varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Varsity Lake', hours:'Always open', found:false},
+englib: {lat:40.00752, lon:-105.26597, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Engineering Library', hours:'8am - 10pm', found:false},
+music:  {lat:40.00623, lon:-105.27038, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Music Library', hours:'9am - 9pm', found:false}
 };
 
 // Bind
@@ -318,6 +328,14 @@ setTimeout(() => map.invalidateSize(), 300);
 Object.keys(targets).forEach(key=>{
 targets[key].toggleEl.addEventListener('change',(e)=>{
 targets[key].el.setAttribute('visible',e.target.checked);
+});
+
+const foundCheckId = 'found' + key.charAt(0).toUpperCase() + key.slice(1);
+const foundCheck = document.querySelector('#' + foundCheckId);
+foundCheck.addEventListener('change', (e) => {
+targets[key].found = e.target.checked;
+const foundCount = Object.values(targets).filter(t => t.found).length;
+showToast(`Found ${foundCount}/5 locations!`);
 });
 });
 
@@ -403,6 +421,15 @@ const t=targets[key];
 const d=haversineMeters(latitude,longitude,t.lat,t.lon);
 const val=d>=1000?(d/1000).toFixed(2)+' km':Math.round(d)+' m';
 t.distEl.textContent=val;
+
+// Notification at 100 meters
+if(d <= 100 && d > 0 && !t.found && !t.notified) {
+t.notified = true;
+showToast(`🎯 You're close to ${t.name}!`);
+}
+if(d > 100) {
+t.notified = false;
+}
 }
 });
 </script>
