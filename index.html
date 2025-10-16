@@ -130,7 +130,7 @@ pointer-events: auto;
 #toggleMapBtn:hover {
 background: rgba(255, 209, 102, 0.25);
 }
-  
+
 #directionIndicator {
 position: absolute; bottom: 8px; left: 8px;
 background: rgba(0,0,0,.6); color: var(--accent);
@@ -153,7 +153,7 @@ pointer-events: none; z-index: 9999;
 <div class="minimizable">
 <div class="row" style="margin-top:6px">
 <div style="font-size:13px; line-height:1.4; color:var(--muted);">
-Explore popular study spots around CU Boulder campus using augmented reality. Enable location and camera permissions, then look around to see study locations in the world around you. <b style="color:var(--fg);">Blue checkboxes</b> show/hide locations on screen. <b style="color:var(--fg);">Golden checkboxes</b> mark locations as found to track your progress. Use the map to navigate.
+Explore popular study spots around CU Boulder campus using augmented reality. Enable location and camera permissions, then look around to see study locations in the world around you. Use the checkboxes to show/hide locations and the map to navigate.
 </div>
 </div>
 <div class="row" style="margin-top:8px">
@@ -199,7 +199,7 @@ Explore popular study spots around CU Boulder campus using augmented reality. En
 </div>
 
 <div id="toast" aria-live="polite"></div>
-  
+
 <!-- AR Scene -->
 <a-scene
 vr-mode-ui="enabled: false"
@@ -269,6 +269,11 @@ return directions[index];
 }
 
 const targets = {
+norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library'},
+atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building'},
+varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Varsity Lake'},
+englib: {lat:40.00752, lon:-105.26597, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Engineering Library'},
+music:  {lat:40.00623, lon:-105.27038, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Music Library'}
 norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library', hours:'8am - 12am', found:false},
 atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building', hours:'7am - 11pm', found:false},
 varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Varsity Lake', hours:'Always open', found:false},
