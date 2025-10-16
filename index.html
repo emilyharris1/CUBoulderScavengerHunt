@@ -106,7 +106,7 @@ transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 width: 200px; height: 200px;
 }
 #mapContainer.expanded {
-width: 80vw; height: 60vh; bottom: 5%; right: 5%;
+width: 80vw; height: 80vh; bottom: 10%; right: 10%;
 }
 #map {
 width: 100%; height: 100%;
@@ -130,7 +130,7 @@ pointer-events: auto;
 #toggleMapBtn:hover {
 background: rgba(255, 209, 102, 0.25);
 }
-
+  
 #directionIndicator {
 position: absolute; bottom: 8px; left: 8px;
 background: rgba(0,0,0,.6); color: var(--accent);
@@ -199,7 +199,7 @@ Explore popular study spots around CU Boulder campus using augmented reality. En
 </div>
 
 <div id="toast" aria-live="polite"></div>
-
+  
 <!-- AR Scene -->
 <a-scene
 vr-mode-ui="enabled: false"
@@ -335,7 +335,7 @@ const foundCheck = document.querySelector('#' + foundCheckId);
 foundCheck.addEventListener('change', (e) => {
 targets[key].found = e.target.checked;
 const foundCount = Object.values(targets).filter(t => t.found).length;
-showToast(`✓ Found ${foundCount}/5 locations!`);
+showToast(`Found ${foundCount}/5 locations!`);
 });
 });
 
