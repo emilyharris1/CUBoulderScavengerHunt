@@ -11,6 +11,10 @@
   <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
   <!-- Make in-world labels face the camera -->
   <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+  <!-- Leaflet for map -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
   <script>
     AFRAME.registerComponent('spin-y', {
       schema: {speed: {type: 'number', default: 30}}, // degrees per second
@@ -23,6 +27,7 @@
   <style>
     :root { --bg: rgba(0,0,0,.55); --fg: #fff; --accent: #ffd166; --muted:#d9d9d9; }
     html, body { margin:0; padding:0; height:100%; background:#000; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    
     #hud {
       position: fixed; inset: 0 0 auto 0; padding: 10px 12px; display:flex; gap:8px;
       align-items: flex-start; color: var(--fg); z-index: 9999; pointer-events: none;
@@ -92,6 +97,48 @@
       background: rgba(255, 209, 102, 0.25);
     }
 
+    /* Map styling */
+    #mapContainer {
+      position: fixed; bottom: 20px; right: 20px; z-index: 9998;
+      background: var(--bg); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 12px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 200px; height: 200px;
+    }
+    #mapContainer.expanded {
+      width: 80vw; height: 80vh; bottom: 10%; right: 10%;
+    }
+    #map {
+      width: 100%; height: 100%;
+    }
+    #toggleMapBtn {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(255, 209, 102, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(255, 209, 102, 0.3);
+      font-weight: 600;
+      font-size: 14px;
+      min-width: 32px; min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px; cursor: pointer;
+      z-index: 10000;
+      transition: all 0.2s ease;
+      pointer-events: auto;
+    }
+    #toggleMapBtn:hover {
+      background: rgba(255, 209, 102, 0.25);
+    }
+    
+    #directionIndicator {
+      position: absolute; bottom: 8px; left: 8px;
+      background: rgba(0,0,0,.6); color: var(--accent);
+      padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      pointer-events: none; z-index: 9999;
+    }
+
     * { transition: transform 0.1s ease; }
   </style>
 </head>
@@ -125,10 +172,17 @@
           <small id="gpsStatus">GPS: looking for signal…</small>
         </div>
         <div class="row" style="margin-top:4px">
-          <small class="note">Tip: Tap <kbd>Re-center</kbd> if labels don’t face you.</small>
+          <small class="note">Tip: Tap <kbd>Re-center</kbd> if labels don't face you.</small>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Map Container -->
+  <div id="mapContainer">
+    <div id="map"></div>
+    <button id="toggleMapBtn" title="Expand/Collapse Map">+</button>
+    <div id="directionIndicator">--</div>
   </div>
 
   <div id="toast" aria-live="polite"></div>
@@ -185,12 +239,28 @@
       return R * c;
     }
 
+    function getBearing(lat1, lon1, lat2, lon2) {
+      const toRad = d => d * Math.PI / 180;
+      const toDeg = r => r * 180 / Math.PI;
+      const dLon = toRad(lon2 - lon1);
+      const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+      const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+      const bearing = (toDeg(Math.atan2(y, x)) + 360) % 360;
+      return bearing;
+    }
+
+    function getCardinalDirection(bearing) {
+      const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+      const index = Math.round(bearing / 22.5) % 16;
+      return directions[index];
+    }
+
     const targets = {
-      norlin: {lat:40.008351, lon:-105.269859, el:null, labelEl:null, toggleEl:null, distEl:null},
-      atlas:  {lat:40.0071203, lon:-105.2697576, el:null, labelEl:null, toggleEl:null, distEl:null},
-      varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null},
-      englib: {lat:40.00752, lon:-105.26597, el:null, labelEl:null, toggleEl:null, distEl:null},
-      music:  {lat:40.00623, lon:-105.27038, el:null, labelEl:null, toggleEl:null, distEl:null}
+      norlin: {lat:40.008351, lon:-105.269859, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library'},
+      atlas:  {lat:40.0071203, lon:-105.2697576, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building'},
+      varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Varsity Lake'},
+      englib: {lat:40.00752, lon:-105.26597, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Engineering Library'},
+      music:  {lat:40.00623, lon:-105.27038, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Music Library'}
     };
 
     // Bind
@@ -220,51 +290,120 @@
     const toast = document.querySelector('#toast');
     const hud = document.querySelector('#hud');
     const toggleHudBtn = document.querySelector('#toggleHudBtn');
+    const mapContainer = document.querySelector('#mapContainer');
+    const toggleMapBtn = document.querySelector('#toggleMapBtn');
+    const directionIndicator = document.querySelector('#directionIndicator');
+    
     let isMinimized = false;
+    let mapExpanded = false;
+    let currentLat, currentLon;
+    let map, userMarker, targetMarkers = {};
 
-    toggleHudBtn.addEventListener('click',()=>{
-      isMinimized=!isMinimized;
-      hud.classList.toggle('minimized',isMinimized);
-      toggleHudBtn.textContent=isMinimized?'+':'−';
-      showToast(isMinimized?'HUD minimized - tap + to expand':'HUD expanded');
+    // Initialize map
+    map = L.map('map').setView([40.00852, -105.26916], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Add target markers to map
+    const targetColors = {
+      norlin: '#FF6B6B',
+      atlas: '#4ECDC4',
+      varsity: '#45B7D1',
+      englib: '#FFA07A',
+      music: '#98D8C8'
+    };
+
+    Object.keys(targets).forEach(key => {
+      const target = targets[key];
+      const color = targetColors[key];
+      const html = `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+      const icon = L.divIcon({html, iconSize: [30, 30], className: 'custom-marker'});
+      targetMarkers[key] = L.marker([target.lat, target.lon], {icon}).addTo(map).bindPopup(target.name);
     });
 
-    Object.keys(targets).forEach(key=>{
-      targets[key].toggleEl.addEventListener('change',(e)=>{
-        targets[key].el.setAttribute('visible',e.target.checked);
+    // User location marker
+    userMarker = L.marker([40.00852, -105.26916], {
+      icon: L.icon({url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI4IiBmaWxsPSIjRkZENjY2IiBzdHJva2U9IiNGRkYiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==', iconSize: [24, 24]})
+    }).addTo(map);
+
+    function updateMap(lat, lon) {
+      currentLat = lat;
+      currentLon = lon;
+      map.setView([lat, lon], 16);
+      userMarker.setLatLng([lat, lon]);
+
+      // Find nearest location
+      let nearest = null;
+      let minDist = Infinity;
+      for (const key of Object.keys(targets)) {
+        const d = haversineMeters(lat, lon, targets[key].lat, targets[key].lon);
+        if (d < minDist) {
+          minDist = d;
+          nearest = key;
+        }
+      }
+
+      if (nearest) {
+        const bearing = getBearing(lat, lon, targets[nearest].lat, targets[nearest].lon);
+        const direction = getCardinalDirection(bearing);
+        const distStr = minDist >= 1000 ? (minDist / 1000).toFixed(2) + ' km' : Math.round(minDist) + ' m';
+        directionIndicator.textContent = `Head ${direction} (${distStr})`;
+      }
+    }
+
+    toggleHudBtn.addEventListener('click', () => {
+      isMinimized = !isMinimized;
+      hud.classList.toggle('minimized', isMinimized);
+      toggleHudBtn.textContent = isMinimized ? '+' : '−';
+      showToast(isMinimized ? 'HUD minimized - tap + to expand' : 'HUD expanded');
+    });
+
+    toggleMapBtn.addEventListener('click', () => {
+      mapExpanded = !mapExpanded;
+      mapContainer.classList.toggle('expanded', mapExpanded);
+      toggleMapBtn.textContent = mapExpanded ? '−' : '+';
+      setTimeout(() => map.invalidateSize(), 300);
+    });
+
+    Object.keys(targets).forEach(key => {
+      targets[key].toggleEl.addEventListener('change', (e) => {
+        targets[key].el.setAttribute('visible', e.target.checked);
       });
     });
 
-    recenterBtn.addEventListener('click',()=>{
-      Object.values(targets).forEach(t=>{
-        const p=t.labelEl.getAttribute('position');
-        t.labelEl.setAttribute('position',{x:p.x,y:p.y+0.001,z:p.z});
-        setTimeout(()=>t.labelEl.setAttribute('position',p),0);
+    recenterBtn.addEventListener('click', () => {
+      Object.values(targets).forEach(t => {
+        const p = t.labelEl.getAttribute('position');
+        t.labelEl.setAttribute('position', {x: p.x, y: p.y + 0.001, z: p.z});
+        setTimeout(() => t.labelEl.setAttribute('position', p), 0);
       });
       showToast("Re-centered labels");
     });
 
-    function showToast(msg){
-      const div=document.createElement('div');
-      div.className='msg';
-      div.textContent=msg;
+    function showToast(msg) {
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.textContent = msg;
       toast.appendChild(div);
-      setTimeout(()=>{
-        div.style.opacity='0';
-        div.style.transform='translateY(6px)';
-        setTimeout(()=>div.remove(),600);
-      },1500);
+      setTimeout(() => {
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(6px)';
+        setTimeout(() => div.remove(), 600);
+      }, 1500);
     }
 
-    const gpsCam=document.querySelector('[gps-new-camera]');
-    gpsCam.addEventListener('gps-camera-update-position',(e)=>{
-      const {latitude,longitude,accuracy}=e.detail.position;
-      gpsStatus.textContent=`GPS: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy||0)} m)`;
-      for(const key of Object.keys(targets)){
-        const t=targets[key];
-        const d=haversineMeters(latitude,longitude,t.lat,t.lon);
-        const val=d>=1000?(d/1000).toFixed(2)+' km':Math.round(d)+' m';
-        t.distEl.textContent=val;
+    const gpsCam = document.querySelector('[gps-new-camera]');
+    gpsCam.addEventListener('gps-camera-update-position', (e) => {
+      const {latitude, longitude, accuracy} = e.detail.position;
+      gpsStatus.textContent = `GPS: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy || 0)} m)`;
+      updateMap(latitude, longitude);
+      for (const key of Object.keys(targets)) {
+        const t = targets[key];
+        const d = haversineMeters(latitude, longitude, t.lat, t.lon);
+        const val = d >= 1000 ? (d / 1000).toFixed(2) + ' km' : Math.round(d) + ' m';
+        t.distEl.textContent = val;
       }
     });
   </script>
