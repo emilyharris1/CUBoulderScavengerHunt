@@ -152,7 +152,11 @@ pointer-events: none; z-index: 9999;
 
 <div class="minimizable">
 <div class="row" style="margin-top:6px">
-<div class="pill"><b>Steps:</b> Enable <b>Location</b> + <b>Camera</b> → Look Around</div>
+<div style="font-size:13px; line-height:1.4; color:var(--muted);">
+Explore popular study spots around CU Boulder campus using augmented reality. Enable location and camera permissions, then look around to see study locations in the world around you. Use the checkboxes to show/hide locations and the map to navigate.
+</div>
+</div>
+<div class="row" style="margin-top:8px">
 <button id="recenterBtn" class="btn">Re-center</button>
 </div>
 <div class="row" style="margin-top:6px">
@@ -215,13 +219,13 @@ style="width:100%; height:100%;"
 </a-entity>
 
 <!-- Engineering Library (Math Building) -->
-<a-entity id="poi-englib" gps-new-entity-place="latitude:40.00766; longitude:-105.26432">
+<a-entity id="poi-englib" gps-new-entity-place="latitude:40.00752; longitude:-105.26597">
 <a-entity gltf-model="assets/Rover.glb" scale="3 3 3" rotation="0 0 0" spin-y="speed:3"></a-entity>
 <a-text id="label-englib" value="Engineering Library (Math Building)" look-at="[gps-new-camera]" position="0 12 0" color="black" scale="10 10 10"></a-text>
 </a-entity>
 
 <!-- Music Library (Imig Building) -->
-<a-entity id="poi-music" gps-new-entity-place="latitude:40.00610; longitude:-105.26942">
+<a-entity id="poi-music" gps-new-entity-place="latitude:40.00623; longitude:-105.27038">
 <a-entity gltf-model="assets/Piano.glb" scale="3 3 3" rotation="0 0 0" spin-y="speed:3"></a-entity>
 <a-text id="label-music" value="Music Library (Imig Building)" look-at="[gps-new-camera]" position="0 12 0" color="black" scale="10 10 10"></a-text>
 </a-entity>
@@ -258,8 +262,8 @@ const targets = {
 norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library'},
 atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building'},
 varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Varsity Lake'},
-englib: {lat:40.00766, lon:-105.26432, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Engineering Library'},
-music:  {lat:40.00614, lon:-105.26900, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Music Library'}
+englib: {lat:40.00752, lon:-105.26597, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Engineering Library'},
+music:  {lat:40.00623, lon:-105.27038, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Music Library'}
 };
 
 // Bind
@@ -349,9 +353,9 @@ maxZoom: 19
 const targetColors = {
 norlin: '#FF6B6B',
 atlas: '#4ECDC4',
-varsity: '#2168cc',
-englib: '#e67a0e',
-music: '#e5aaf0'
+varsity: '#45B7D1',
+englib: '#FFA07A',
+music: '#98D8C8'
 };
 
 Object.keys(targets).forEach(key => {
