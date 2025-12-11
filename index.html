@@ -317,13 +317,13 @@ return directions[index];
 }
 
 const targets = {
-norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Norlin Library', hours:'7am - 12am', found:false},
-atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'ATLAS Building', hours:'7:30am - 5:30pm', found:false},
+norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Norlin Library', hours:'8am - 12am', found:false},
+atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'ATLAS Building', hours:'7am - 11pm', found:false},
 varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Varsity Lake', hours:'Always open', found:false},
 englib: {lat:40.00766, lon:-105.26432, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Engineering Library', hours:'8am - 10pm', found:false},
 music:  {lat:40.00614, lon:-105.26900, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Music Library', hours:'9am - 9pm', found:false},
 umc:    {lat:40.00655, lon:-105.27138, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'UMC', hours:'7am - 11pm', found:false},
-c4c:    {lat:40.00440, lon:-105.26495, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'C4C', hours:'7am - 8pm', found:false}
+c4c:    {lat:40.00440, lon:-105.26495, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'C4C', hours:'7am - 10pm', found:false}
 };
 
 // Bind
@@ -481,7 +481,7 @@ atlas: '#4ECDC4',
 varsity: '#2168cc',
 englib: '#e67a0e',
 music: '#e5aaf0',
-umc: '#a3f224',
+umc: '#0dbf22',
 c4c: '#cf278c'
 };
 const color = targetColors[key];
@@ -528,8 +528,6 @@ atlas: '#4ECDC4',
 varsity: '#2168cc',
 englib: '#e67a0e',
 music: '#e5aaf0'
-umc: '#a3f224',
-c4c: '#cf278c'
 };
 
 Object.keys(targets).forEach(key => {
