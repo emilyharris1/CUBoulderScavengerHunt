@@ -62,6 +62,10 @@ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radiu
 background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15);
 }
 .pill b { color: var(--accent); }
+.location-row { transition: opacity 0.3s ease; }
+.location-row.found { opacity: 0.6; }
+.location-row.found .pill { background: rgba(255, 209, 102, 0.2); border-color: rgba(255, 209, 102, 0.3); }
+.location-row.found .pill b { color: #4CAF50; }
 kbd { padding:2px 6px; border-radius:6px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); }
 #toast { position: fixed; inset: auto 0 20px 0; display:flex; justify-content:center; z-index:9999; }
 #toast .msg { background: var(--bg); color:var(--fg); border:1px solid rgba(255,255,255,.15); padding:10px 14px; border-radius: 12px; }
@@ -149,6 +153,7 @@ background: rgba(0, 0, 0, 0.2);
 <div class="card">
 <div class="row header-compact">
 <div class="title">Popular Study Spots on Campus</div>
+<div class="pill" style="margin-left: auto;"><b id="foundCount">0</b>/5 Found</div>
 <button id="toggleHudBtn" class="btn" title="Minimize/Maximize HUD">−</button>
 </div>
 
@@ -162,26 +167,36 @@ Explore popular study spots around CU Boulder campus using augmented reality. En
 <button id="recenterBtn" class="btn">Re-center</button>
 </div>
 <div class="row" style="margin-top:6px">
+<div class="location-row" id="row-norlin">
 <label class="chk"><input type="checkbox" id="toggleNorlin" checked />Norlin Library</label>
 <span id="dNorlin" class="pill">-- m</span>
 <span id="hNorlin" style="font-size:11px; color:var(--muted);">8am - 12am</span>
 <input type="checkbox" id="foundNorlin" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
+</div>
+<div class="location-row" id="row-atlas">
 <label class="chk"><input type="checkbox" id="toggleATLAS" checked />ATLAS / VAC</label>
 <span id="dATLAS" class="pill">-- m</span>
 <span id="hATLAS" style="font-size:11px; color:var(--muted);">7am - 11pm</span>
 <input type="checkbox" id="foundATLAS" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
+</div>
+<div class="location-row" id="row-varsity">
 <label class="chk"><input type="checkbox" id="toggleVarsity" checked />Varsity Lake</label>
 <span id="dVarsity" class="pill">-- m</span>
 <span id="hVarsity" style="font-size:11px; color:var(--muted);">Always open</span>
 <input type="checkbox" id="foundVarsity" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
+</div>
+<div class="location-row" id="row-englib">
 <label class="chk"><input type="checkbox" id="toggleEngLib" checked />Engineering Library (Math)</label>
 <span id="dEngLib" class="pill">-- m</span>
 <span id="hEngLib" style="font-size:11px; color:var(--muted);">8am - 10pm</span>
 <input type="checkbox" id="foundEngLib" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
+</div>
+<div class="location-row" id="row-music">
 <label class="chk"><input type="checkbox" id="toggleMusic" checked />Music Library (Imig)</label>
 <span id="dMusic" class="pill">-- m</span>
 <span id="hMusic" style="font-size:11px; color:var(--muted);">9am - 9pm</span>
 <input type="checkbox" id="foundMusic" class="found-check" title="Mark as found" style="accent-color:#ffd166; width:18px; height:18px; cursor:pointer;" />
+</div>
 </div>
 <div class="row" style="margin-top:6px">
 <small id="gpsStatus">GPS: looking for signal…</small>
@@ -271,11 +286,11 @@ return directions[index];
 }
 
 const targets = {
-norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Norlin Library', hours:'8am - 12am', found:false},
-atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, name:'ATLAS Building', hours:'7am - 11pm', found:false},
-varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Varsity Lake', hours:'Always open', found:false},
-englib: {lat:40.00766, lon:-105.26432, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Engineering Library', hours:'8am - 10pm', found:false},
-music:  {lat:40.00614, lon:-105.26900, el:null, labelEl:null, toggleEl:null, distEl:null, name:'Music Library', hours:'9am - 9pm', found:false}
+norlin: {lat:40.0085, lon:-105.27016, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Norlin Library', hours:'8am - 12am', found:false},
+atlas:  {lat:40.00779, lon:-105.26967, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'ATLAS Building', hours:'7am - 11pm', found:false},
+varsity:{lat:40.00966, lon:-105.27428, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Varsity Lake', hours:'Always open', found:false},
+englib: {lat:40.00766, lon:-105.26432, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Engineering Library', hours:'8am - 10pm', found:false},
+music:  {lat:40.00614, lon:-105.26900, el:null, labelEl:null, toggleEl:null, distEl:null, foundCheckEl:null, name:'Music Library', hours:'9am - 9pm', found:false}
 };
 
 // Bind
@@ -299,6 +314,11 @@ targets.atlas.distEl = document.querySelector('#dATLAS');
 targets.varsity.distEl = document.querySelector('#dVarsity');
 targets.englib.distEl = document.querySelector('#dEngLib');
 targets.music.distEl = document.querySelector('#dMusic');
+targets.norlin.foundCheckEl = document.querySelector('#foundNorlin');
+targets.atlas.foundCheckEl = document.querySelector('#foundATLAS');
+targets.varsity.foundCheckEl = document.querySelector('#foundVarsity');
+targets.englib.foundCheckEl = document.querySelector('#foundEngLib');
+targets.music.foundCheckEl = document.querySelector('#foundMusic');
 
 const gpsStatus = document.querySelector('#gpsStatus');
 const recenterBtn = document.querySelector('#recenterBtn');
@@ -308,10 +328,80 @@ const toggleHudBtn = document.querySelector('#toggleHudBtn');
 const mapContainer = document.querySelector('#mapContainer');
 const toggleMapBtn = document.querySelector('#toggleMapBtn');
 const directionIndicator = document.querySelector('#directionIndicator');
+const foundCountEl = document.querySelector('#foundCount');
 
 let isMinimized = false;
 let mapExpanded = false;
 let map, userMarker, targetMarkers = {};
+const AUTO_DETECT_DISTANCE = 30; // meters
+
+// Load saved progress
+async function loadProgress() {
+try {
+const result = await window.storage.get('cu-boulder-hunt-progress');
+if (result) {
+const saved = JSON.parse(result.value);
+Object.keys(saved).forEach(key => {
+if (targets[key] && saved[key]) {
+targets[key].found = true;
+targets[key].foundCheckEl.checked = true;
+document.querySelector(`#row-${key}`).classList.add('found');
+}
+});
+updateFoundCount();
+}
+} catch (e) {
+console.log('No saved progress found');
+}
+}
+
+// Save progress
+async function saveProgress() {
+try {
+const progress = {};
+Object.keys(targets).forEach(key => {
+progress[key] = targets[key].found;
+});
+await window.storage.set('cu-boulder-hunt-progress', JSON.stringify(progress));
+} catch (e) {
+console.error('Failed to save progress:', e);
+}
+}
+
+// Update found count
+function updateFoundCount() {
+const count = Object.values(targets).filter(t => t.found).length;
+foundCountEl.textContent = count;
+if (count === Object.keys(targets).length) {
+setTimeout(() => {
+showToast('🎉 Congratulations! You found all study spots!');
+}, 500);
+}
+}
+
+// Mark location as found
+function markAsFound(key, autoDetected = false) {
+if (!targets[key].found) {
+targets[key].found = true;
+targets[key].foundCheckEl.checked = true;
+document.querySelector(`#row-${key}`).classList.add('found');
+updateFoundCount();
+saveProgress();
+
+// Update map marker color
+if (targetMarkers[key]) {
+const greenHtml = `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="#4CAF50" stroke="white" stroke-width="2"/></svg>`;
+const greenIcon = L.divIcon({html: greenHtml, iconSize: [30, 30], className: 'custom-marker'});
+targetMarkers[key].setIcon(greenIcon);
+}
+ 
+const msg = autoDetected ? `✓ Found: ${targets[key].name}!` : `Marked as found: ${targets[key].name}`;
+showToast(msg);
+}
+}
+
+// Initialize progress on load
+loadProgress();
 
 toggleHudBtn.addEventListener('click',()=>{
 isMinimized=!isMinimized;
@@ -330,6 +420,31 @@ setTimeout(() => map.invalidateSize(), 300);
 Object.keys(targets).forEach(key=>{
 targets[key].toggleEl.addEventListener('change',(e)=>{
 targets[key].el.setAttribute('visible',e.target.checked);
+});
+targets[key].foundCheckEl.addEventListener('change', (e) => {
+if (e.target.checked) {
+markAsFound(key, false);
+} else {
+// Allow unchecking
+targets[key].found = false;
+document.querySelector(`#row-${key}`).classList.remove('found');
+updateFoundCount();
+saveProgress();
+// Reset map marker color
+if (targetMarkers[key]) {
+const targetColors = {
+norlin: '#FF6B6B',
+atlas: '#4ECDC4',
+varsity: '#2168cc',
+englib: '#e67a0e',
+music: '#e5aaf0'
+};
+const color = targetColors[key];
+const html = `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+const icon = L.divIcon({html, iconSize: [30, 30], className: 'custom-marker'});
+targetMarkers[key].setIcon(icon);
+}
+}
 });
 });
 
@@ -415,6 +530,11 @@ const t=targets[key];
 const d=haversineMeters(latitude,longitude,t.lat,t.lon);
 const val=d>=1000?(d/1000).toFixed(2)+' km':Math.round(d)+' m';
 t.distEl.textContent=val;
+
+// Auto-detect if within range and not already found
+if (d <= AUTO_DETECT_DISTANCE && !t.found) {
+markAsFound(key, true);
+}
 }
 });
 </script>
