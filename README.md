@@ -25,16 +25,16 @@ This is a no-cost, WebAR starter built with A-Frame + AR.js (location-based). It
 
 Have fun!
 
-Book Stack by Danni Bittman [CC-BY] via Poly Pizza
+Book Stack by Danni Bittman via Poly Pizza
 
-Videogame Controller by Poly by Google [CC-BY] via Poly Pizza
+Videogame Controller by Poly by Google via Poly Pizza
 
-Lake Scenery by portomat [CC-BY] via Poly Pizza
+Lake Scenery by portomat via Poly Pizza
 
-Piano by jeremy [CC-BY] via Poly Pizza
+Piano by jeremy via Poly Pizza
 
-Rover by Quaternius
+Rover by Quaternius via Poly Pizza
 
-Salad Bowl by Jarlan Perez [CC-BY] via Poly Pizza
+Salad Bowl by Jarlan Perez via Poly Pizza
 
-Bison by Poly by Google [CC-BY] via Poly Pizza
+Bison by Poly by Google via Poly Pizza
