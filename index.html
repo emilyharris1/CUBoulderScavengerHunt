@@ -278,13 +278,13 @@ style="width:100%; height:100%;"
 
 <!-- UMC -->
 <a-entity id="poi-umc" gps-new-entity-place="latitude:40.00655; longitude:-105.27138">
-<a-entity gltf-model="assets/Bison.glb" scale="6 6 6" rotation="0 180 0" spin-y="speed:3"></a-entity>
+<a-box color="#0dbf22" scale="5 5 5" rotation="0 45 0" spin-y="speed:3"></a-box>
 <a-text id="label-umc" value="UMC" look-at="[gps-new-camera]" position="0 15 0" color="black" scale="15 15 15"></a-text>
 </a-entity>
 
 <!-- C4C -->
 <a-entity id="poi-c4c" gps-new-entity-place="latitude:40.00440; longitude:-105.26495">
-<a-entity gltf-model="assets/SaladBowl.glb" scale="4 4 4" rotation="0 0 0" spin-y="speed:3"></a-entity>
+<a-sphere color="#cf278c" scale="5 5 5" spin-y="speed:3"></a-sphere>
 <a-text id="label-c4c" value="C4C" look-at="[gps-new-camera]" position="0 15 0" color="black" scale="15 15 15"></a-text>
 </a-entity>
 </a-scene>
@@ -528,3 +528,71 @@ atlas: '#4ECDC4',
 varsity: '#2168cc',
 englib: '#e67a0e',
 music: '#e5aaf0',
+umc: '#a3f224',
+c4c: '#cf278c'
+};
+
+Object.keys(targets).forEach(key => {
+const target = targets[key];
+const color = targetColors[key];
+const html = `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="${color}" stroke="white" stroke-width="2"/></svg>`;
+const icon = L.divIcon({html, iconSize: [30, 30], className: 'custom-marker'});
+targetMarkers[key] = L.marker([target.lat, target.lon], {icon}).addTo(map).bindPopup(target.name);
+});
+
+// Create star SVG for user location
+const starSvg = `<svg width="32" height="32" viewBox="0 0 24 24">
+<path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" 
+fill="#FFD166" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>`;
+const starIcon = L.divIcon({
+html: starSvg,
+iconSize: [32, 32],
+iconAnchor: [16, 16],
+className: 'user-star-marker'
+});
+userMarker = L.marker([40.00852, -105.26916], {icon: starIcon}).addTo(map);
+}, 100);
+
+const gpsCam=document.querySelector('[gps-new-camera]');
+gpsCam.addEventListener('gps-camera-update-position',(e)=>{
+const {latitude,longitude,accuracy}=e.detail.position;
+gpsStatus.textContent=`GPS: ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (±${Math.round(accuracy||0)} m)`;
+
+if(map && userMarker) {
+map.setView([latitude, longitude], 16);
+userMarker.setLatLng([latitude, longitude]);
+
+let nearest = null;
+let minDist = Infinity;
+for (const key of Object.keys(targets)) {
+const d = haversineMeters(latitude, longitude, targets[key].lat, targets[key].lon);
+if (d < minDist) {
+minDist = d;
+nearest = key;
+}
+}
+
+if (nearest) {
+const bearing = getBearing(latitude, longitude, targets[nearest].lat, targets[nearest].lon);
+const direction = getCardinalDirection(bearing);
+const distStr = minDist >= 1000 ? (minDist / 1000).toFixed(2) + ' km' : Math.round(minDist) + ' m';
+directionIndicator.textContent = `Head ${direction} (${distStr})`;
+}
+}
+
+for(const key of Object.keys(targets)){
+const t=targets[key];
+const d=haversineMeters(latitude,longitude,t.lat,t.lon);
+const val=d>=1000?(d/1000).toFixed(2)+' km':Math.round(d)+' m';
+t.distEl.textContent=val;
+
+// Auto-detect if within range and not already found
+if (d <= AUTO_DETECT_DISTANCE && !t.found) {
+markAsFound(key, true);
+}
+}
+});
+</script>
+</body>
+</html>
