@@ -389,6 +389,8 @@ if (targets[key] && saved[key]) {
 targets[key].found = true;
 targets[key].foundCheckEl.checked = true;
 document.querySelector(`#row-${key}`).classList.add('found');
+// Hide models that were previously found
+targets[key].el.setAttribute('visible', false);
 }
 });
 updateFoundCount();
@@ -431,6 +433,9 @@ document.querySelector(`#row-${key}`).classList.add('found');
 updateFoundCount();
 saveProgress();
 
+// Hide the 3D model when found
+targets[key].el.setAttribute('visible', false);
+
 // Update map marker color
 if (targetMarkers[key]) {
 const greenHtml = `<svg width="30" height="30" viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" fill="#4CAF50" stroke="white" stroke-width="2"/></svg>`;
@@ -467,12 +472,16 @@ targets[key].el.setAttribute('visible',e.target.checked);
 targets[key].foundCheckEl.addEventListener('change', (e) => {
 if (e.target.checked) {
 markAsFound(key, false);
+// Hide the 3D model when marked as found
+targets[key].el.setAttribute('visible', false);
 } else {
 // Allow unchecking
 targets[key].found = false;
 document.querySelector(`#row-${key}`).classList.remove('found');
 updateFoundCount();
 saveProgress();
+// Show the 3D model again when unchecked
+targets[key].el.setAttribute('visible', true);
 // Reset map marker color
 if (targetMarkers[key]) {
 const targetColors = {
