@@ -467,21 +467,24 @@ setTimeout(() => map.invalidateSize(), 300);
 
 Object.keys(targets).forEach(key=>{
 targets[key].toggleEl.addEventListener('change',(e)=>{
+// Only respect toggle if not found
+if (!targets[key].found) {
 targets[key].el.setAttribute('visible',e.target.checked);
+}
 });
 targets[key].foundCheckEl.addEventListener('change', (e) => {
 if (e.target.checked) {
 markAsFound(key, false);
-// Hide the 3D model when marked as found
-targets[key].el.setAttribute('visible', false);
 } else {
 // Allow unchecking
 targets[key].found = false;
 document.querySelector(`#row-${key}`).classList.remove('found');
 updateFoundCount();
 saveProgress();
-// Show the 3D model again when unchecked
+// Show the 3D model again when unchecked (only if toggle is checked)
+if (targets[key].toggleEl.checked) {
 targets[key].el.setAttribute('visible', true);
+}
 // Reset map marker color
 if (targetMarkers[key]) {
 const targetColors = {
