@@ -25,6 +25,8 @@ This is a no-cost, WebAR starter built with A-Frame + AR.js (location-based). It
 
 Have fun!
 
+## Attributions
+
 Book Stack by Danni Bittman via Poly Pizza
 
 Videogame Controller by Poly by Google via Poly Pizza
