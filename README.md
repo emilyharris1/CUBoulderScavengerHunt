@@ -1,9 +1,7 @@
 
 # CU Boulder AR Scavenger Hunt (Norlin + ATLAS)
 
-This is a no-cost, WebAR starter built with A-Frame + AR.js (location-based). It anchors simple 3D markers at two CU Boulder spots:
-- **Norlin Library** (main entrance area).
-- **ATLAS / Visual Arts Complex** (near the CU Art Museum).
+This is a no-cost, WebAR starter built with A-Frame + AR.js (location-based). It anchors simple 3D markers at CU Boulder study spots.
 
 ## Try it
 
@@ -13,13 +11,6 @@ This is a no-cost, WebAR starter built with A-Frame + AR.js (location-based). It
 4) Look around; you should see labeled shapes floating over the real world where the targets are.
 
 > Tip: Use Chrome on Android. On iPhone, Safari works but you may need to enable “Motion & Orientation Access” in Settings ▸ Safari.
-
-## Change or add stops
-Open `index.html` and update the two `gps-new-entity-place` attributes:
-```html
-<a-entity gps-new-entity-place="latitude: YOUR_LAT; longitude: YOUR_LON">
-```
-To get coordinates: long-press any point in Google Maps and copy the **decimal** lat/lon.
 
 ## Quick GitHub Pages
 - Create a new public repo named, say, `cu-ar-hunt`.
@@ -33,3 +24,17 @@ To get coordinates: long-press any point in Google Maps and copy the **decimal**
 - Accuracy: GPS may drift 5–20m outdoors. For best results, stand in open areas (not under trees/metal awnings) and give the sensor a few seconds.
 
 Have fun!
+
+Book Stack by Danni Bittman [CC-BY] via Poly Pizza
+
+Videogame Controller by Poly by Google [CC-BY] via Poly Pizza
+
+Lake Scenery by portomat [CC-BY] via Poly Pizza
+
+Piano by jeremy [CC-BY] via Poly Pizza
+
+Rover by Quaternius
+
+Salad Bowl by Jarlan Perez [CC-BY] via Poly Pizza
+
+Bison by Poly by Google [CC-BY] via Poly Pizza
