@@ -1,5 +1,5 @@
 
-# CU Boulder AR Scavenger Hunt (Norlin + ATLAS)
+# CU Boulder AR Scavenger Hunt
 
 This is a no-cost, WebAR starter built with A-Frame + AR.js (location-based). It anchors simple 3D markers at CU Boulder study spots.
 
