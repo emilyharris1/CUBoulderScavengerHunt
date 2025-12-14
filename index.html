@@ -14,13 +14,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>CU Boulder AR Scavenger Hunt</title>
 
-<!-- A-Frame and AR.js (Location-based) -->
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/three.js/build/ar-threex-location-only.js"></script>
 <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
-<!-- Make in-world labels face the camera -->
 <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-<!-- Leaflet for map -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
@@ -155,7 +152,6 @@ background: rgba(0, 0, 0, 0.2);
 </style>
 </head>
 <body>
-<!-- Heads-up UI -->
 <div id="hud">
 <div class="card">
 <div class="row header-compact">
@@ -227,7 +223,6 @@ Explore popular study spots around CU Boulder campus using augmented reality. En
 </div>
 </div>
 
-<!-- Map Container -->
 <div id="mapContainer">
 <div id="map"></div>
 <button id="toggleMapBtn" title="Expand/Collapse Map">+</button>
@@ -236,7 +231,6 @@ Explore popular study spots around CU Boulder campus using augmented reality. En
 
 <div id="toast" aria-live="polite"></div>
 
-<!-- AR Scene -->
 <a-scene
 vr-mode-ui="enabled: false"
 renderer="antialias: true; alpha: true; colorManagement: true; physicallyCorrectLights: true"
